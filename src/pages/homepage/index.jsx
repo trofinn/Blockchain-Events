@@ -2,7 +2,7 @@
 import EventCard from "../../pages/components/content/EventCard.jsx";
 import React, {useEffect} from "react";
 import {toast} from "react-hot-toast";
-import {blockChainContract, signer} from '../../helper/blockchain.js';
+import {blockChainFactoryContract, signer} from '../../helper/blockchain.js';
 import { useDispatch } from 'react-redux';
 import {GetAllEvents} from "../../api-calls/events.js";
 import {SetAllEvents} from "../../redux/eventSlice.js";
@@ -12,13 +12,8 @@ function Homepage() {
     const dispatch = useDispatch();
     const getMyEvents = async () => {
         try {
-            const eventsResponse = await blockChainContract.getAllEvents();
-            const eventIds = [];
-
-            for (const event of eventsResponse) {
-                eventIds.push(event.eventAddress);
-            }
-            const response = await GetAllEvents(eventIds);
+            const eventsResponse = await blockChainFactoryContract.getAllEvents();
+            const response = await GetAllEvents(eventsResponse);
             if(response.success) {
                 dispatch(SetAllEvents(response.data));
                 setEvents(response.data);
@@ -53,14 +48,15 @@ function Homepage() {
                             // eslint-disable-next-line react/jsx-key
                             const myEvent = {
                                 name: event.name,
-                                city: "Paris",
-                                hour: "00:00",
-                                address: event.eventAddress,
-                                date: "31/12/2023",
-                                photo: "Event photo",
-                                description: "Event Description",
-                                price: event.price.toString(),
-                                reputationRequired: event.reputationRequired.toString()
+                                city: event.city,
+                                hour: event.hour,
+                                address: event.address,
+                                date: event.date,
+                                photo: event.photo,
+                                description: event.description,
+                                blockAddress: event.blockAddress,
+                                price: event.price,
+                                reputationRequired: event.reputationRequired
                             }
                             // eslint-disable-next-line react/jsx-key
                             return <EventCard event={myEvent}/>

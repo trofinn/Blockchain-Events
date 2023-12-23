@@ -1,21 +1,28 @@
 import React, {useEffect} from "react";
 import {toast} from "react-hot-toast";
 import EventCard from "../../pages/components/content/EventCard.jsx";
-import {blockChainContract} from '../../helper/blockchain.js';
+import {blockChainFactoryContract} from '../../helper/blockchain.js';
+import {GetAllEvents} from "../../api-calls/events.js";
 
 function MyEvents({data} ) {
     const [events, setEvents] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
     const [isMetaMaskConnected, setIsMetaMaskConnected] = React.useState(false);
 
-    useEffect(() => {
-        if(!data) {
-            setLoading(true);
+    const getMyEvents = async () => {
+        if (isMetaMaskConnected) {
+            try {
+                const eventsResponse = await blockChainFactoryContract.getUserCreatedEvents(data);
+                const response = await GetAllEvents(eventsResponse);
+                setEvents(response.data);
+            } catch (e) {
+                toast.error(e);
+            } finally {
+                setLoading(false);
+            }
         }
-        else {
-            setLoading(false);
-        }
-    }, [data]);
+    }
+
 
     useEffect(() => {
         const checkMetaMaskConnection = async () => {
@@ -32,19 +39,12 @@ function MyEvents({data} ) {
     }, []);
 
     useEffect(() => {
-        const getMyEvents = async () => {
-            if (isMetaMaskConnected) {
-                try {
-                    const eventsResponse = await blockChainContract.getUserEvents(data);
-                    setEvents(eventsResponse);
-                } catch (e) {
-                    toast.error(e);
-                } finally {
-                    setLoading(false);
-                }
-            }
+        if(!data) {
+            setLoading(true);
         }
-
+        else {
+            setLoading(false);
+        }
         getMyEvents();
     }, [data]);
 
@@ -64,14 +64,15 @@ function MyEvents({data} ) {
                             // eslint-disable-next-line react/jsx-key
                             const myEvent = {
                                 name: event.name,
-                                city: "Paris",
-                                hour: "00:00",
-                                address: event.eventAddress,
-                                date: "31/12/2023",
-                                photo: "Event photo",
-                                description: "Event Description",
-                                price: event.price.toString(),
-                                reputationRequired: event.reputationRequired.toString()
+                                city: event.city,
+                                hour: event.hour,
+                                address: event.address,
+                                date: event.date,
+                                photo: event.photo,
+                                description: event.description,
+                                blockAddress: event.blockAddress,
+                                price: event.price,
+                                reputationRequired: event.reputationRequired
                             }
                             // eslint-disable-next-line react/jsx-key
                             return <EventCard event={myEvent} admin={true}/>

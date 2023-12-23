@@ -5,7 +5,7 @@ import {Label} from "../../components/ui/label.jsx";
 import {Button} from "../../components/ui/button.jsx";
 import React from "react";
 import {toast} from "react-hot-toast";
-import {blockChainContract} from '../../helper/blockchain.js';
+import {blockChainEventsAdress, blockChainFactoryContract, EventTicketingABI, signer} from '../../helper/blockchain.js';
 import {Textarea} from "../../components/ui/textarea.jsx";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -18,6 +18,7 @@ import {
     PopoverTrigger,
 } from "../../components/ui/popover";
 import {CreateEventCall} from "../../api-calls/events.js";
+import {ethers} from "ethers";
 
 function CreateEvent() {
     const [name, setName] = React.useState("");
@@ -32,9 +33,10 @@ function CreateEvent() {
 
     const createEvent = async (name, price, reputation, tickets, city, address, date, hour, description) => {
         try {
-            const transaction = await blockChainContract.createEvent(name, parseFloat(price), parseInt(reputation), parseInt(tickets));
+            const transaction = await blockChainFactoryContract.createEvent(name,parseInt(tickets), parseFloat(price), parseFloat(reputation) );
             const receipt = await transaction.wait();
             const eventAddress = receipt.logs[0].address;
+            console.log("receipt", receipt);
             const newEvent = {
                 name: name,
                 price: price,

@@ -19,3 +19,13 @@ export const GetAllEvents = async (data) => {
         return e.response.data;
     }
 }
+
+export const GetMyEvent = async (blockAddress) => {
+    try {
+        const response = await axiosInstance.get(`/api/events/${blockAddress}`,);
+        return response.data;
+    }
+    catch (e) {
+        return e.response.data;
+    }
+}

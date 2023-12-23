@@ -1,20 +1,33 @@
 
 import React, {useEffect} from "react";
 import {toast} from "react-hot-toast";
-import {blockChainContract} from '../../helper/blockchain.js';
+import {blockChainFactoryContract} from '../../helper/blockchain.js';
 import EventCard from "../../pages/components/content/EventCard.jsx";
+import {GetAllEvents} from "../../api-calls/events.js";
 
 function MyTickets({ data }) {
     const [events, setEvents] = React.useState([]);
     const [loading, setLoading] = React.useState(true);
     const [isMetaMaskConnected, setIsMetaMaskConnected] = React.useState(false);
 
-    useEffect(() => {
-        if(!data) {
-            setLoading(true);
+    const getMyTickets = async () => {
+        if (isMetaMaskConnected) {
+            try {
+                const eventsResponse = await blockChainFactoryContract.getAllEvents();
+                const response = await GetAllEvents(eventsResponse);
+                if(response.success) {
+                    setEvents(response.data);
+                }
+                else {
+                    console.log("error getting the events");
+                }
+            } catch (e) {
+                toast.error(e);
+            } finally {
+                setLoading(false);
+            }
         }
-        else setLoading(false);
-    }, [data]);
+    }
 
     useEffect(() => {
         const checkMetaMaskConnection = async () => {
@@ -31,20 +44,8 @@ function MyTickets({ data }) {
     }, []);
 
     useEffect(() => {
-        const getMyEvents = async () => {
-            if (isMetaMaskConnected) {
-                try {
-                    const eventsResponse = await blockChainContract.getUserParticipation(data);
-                    setEvents(eventsResponse);
-                } catch (e) {
-                    toast.error(e);
-                } finally {
-                    setLoading(false);
-                }
-            }
-        }
 
-        getMyEvents();
+        getMyTickets();
     }, [data]);
 
 
@@ -54,7 +55,7 @@ function MyTickets({ data }) {
                 <h1 className="ml-6" id="homeTitle"><i>My Tickets</i></h1>
                 {loading ? (
                     <p>
-                        Loading..
+                        No events..
                     </p>
                 ) : (
 
@@ -62,15 +63,16 @@ function MyTickets({ data }) {
                         {events.map((event) => {
                             // eslint-disable-next-line react/jsx-key
                             const myEvent = {
-                                name: "Event Name",
-                                city: "Paris",
-                                hour: "00:00",
-                                address: event.eventAddress,
-                                date: "31/12/2023",
-                                photo: "Event photo",
-                                description: "Event Description",
-                                price: "0",
-                                reputationRequired: event.reputationPoints.toString()
+                                name: event.name,
+                                city: event.city,
+                                hour: event.hour,
+                                address: event.address,
+                                date: event.date,
+                                photo: event.photo,
+                                description: event.description,
+                                blockAddress: event.blockAddress,
+                                price: event.price,
+                                reputationRequired: event.reputationRequired
                             }
                             // eslint-disable-next-line react/jsx-key
                             return <EventCard event={myEvent}/>

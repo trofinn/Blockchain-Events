@@ -17,7 +17,7 @@ import {
     PopoverTrigger,
 } from "../../../components/ui/popover.jsx"
 import {Card} from "react-bootstrap";
-import {blockChainContract} from "../../../helper/blockchain.js";
+import {blockChainFactoryContract} from "../../../helper/blockchain.js";
 
 const frameworks = [
     {
@@ -66,7 +66,7 @@ function Header({onAccountChange}) {
     );
 
     const getReputation = async (data) => {
-        const reputation = await blockChainContract.userReputation(data);
+        const reputation = await blockChainFactoryContract.getUserGlobalReputation(data);
         setReputation(reputation);
     }
 

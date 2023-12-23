@@ -1,14 +1,10 @@
 import {Separator} from "../../../components/ui/separator.jsx";
 import { Link } from 'react-router-dom';
 import * as Icon from 'react-bootstrap-icons';
+import moment from 'moment';
 function EventCard({ event, admin }) {
-    var eventPageUrl = "";
-    if(admin) {
-        eventPageUrl = `/events/${event.address}/admin`;
-    }
-    else {
-        eventPageUrl = `/events/${event.address}`;
-    }
+    const eventPageUrl = `/events/${event.blockAddress}`;
+
 
     return (
         <Link to={eventPageUrl} className="event-link">
@@ -37,7 +33,7 @@ function EventCard({ event, admin }) {
                         </div>
                         <Separator className="my-4" />
                         <div className="flex h-5 items-center space-x-4 text-sm mb-2">
-                            <div className="text-white">{event.date}</div>
+                            <div className="text-white">{moment(event.date).format("DD / MM / YYYY")}</div>
                             <Separator orientation="vertical" />
                             <div className="text-white">{event.hour}</div>
                             <Separator orientation="vertical" />
