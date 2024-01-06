@@ -65,9 +65,9 @@ function MyEvents({data} ) {
                             const myEvent = {
                                 name: event.name,
                                 city: event.city,
-                                hour: event.hour,
+                                hourStart: event.hourStart,
                                 address: event.address,
-                                date: event.date,
+                                dateStart: event.dateStart,
                                 photo: event.photo,
                                 description: event.description,
                                 blockAddress: event.blockAddress,

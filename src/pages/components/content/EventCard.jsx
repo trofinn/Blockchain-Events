@@ -7,10 +7,10 @@ function EventCard({ event, admin }) {
 
 
     return (
-        <Link to={eventPageUrl} className="event-link">
+        <a href={eventPageUrl} className="event-link">
             <div className="eventCard m-6 rounded">
                 <div className="wrapper">
-                    <div className="banner-image-event "></div>
+                    <div className="banner-image-event"></div>
                     <div>
                         <div className="space-y-1">
                             {admin ? (
@@ -33,9 +33,9 @@ function EventCard({ event, admin }) {
                         </div>
                         <Separator className="my-4" />
                         <div className="flex h-5 items-center space-x-4 text-sm mb-2">
-                            <div className="text-white">{moment(event.date).format("DD / MM / YYYY")}</div>
+                            <div className="text-white">{moment(event.dateStart).format("DD / MM / YYYY")}</div>
                             <Separator orientation="vertical" />
-                            <div className="text-white">{event.hour}</div>
+                            <div className="text-white">{event.hourStart}</div>
                             <Separator orientation="vertical" />
                             <div className="text-white">Price: {event.price}</div>
                             <Separator orientation="vertical" />
@@ -44,7 +44,7 @@ function EventCard({ event, admin }) {
                     </div>
                 </div>
             </div>
-        </Link>
+        </a>
         );
 }
 

@@ -5,7 +5,13 @@ import {Label} from "../../components/ui/label.jsx";
 import {Button} from "../../components/ui/button.jsx";
 import React from "react";
 import {toast} from "react-hot-toast";
-import {blockChainEventsAdress, blockChainFactoryContract, EventTicketingABI, signer} from '../../helper/blockchain.js';
+import {
+    blockChainEventsAdress,
+    blockChainFactoryContract,
+    calculateMaticTokens,
+    EventTicketingABI,
+    signer
+} from '../../helper/blockchain.js';
 import {Textarea} from "../../components/ui/textarea.jsx";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -19,6 +25,7 @@ import {
 } from "../../components/ui/popover";
 import {CreateEventCall} from "../../api-calls/events.js";
 import {ethers} from "ethers";
+import web3 from "web3";
 
 function CreateEvent() {
     const [name, setName] = React.useState("");
@@ -26,14 +33,18 @@ function CreateEvent() {
     const [reputation, setReputation] = React.useState("");
     const [tickets, setTickets] = React.useState("");
     const [city, setCity] = React.useState("");
-    const [date, setDate] = React.useState(new Date());
-    const [hour, setHour] = React.useState("");
+    const [dateStart, setDateStart] = React.useState(new Date());
+    const [hourStart, setHourStart] = React.useState("");
+    const [dateEnd, setDateEnd] = React.useState(new Date());
+    const [hourEnd, setHourEnd] = React.useState("");
     const [description, setDescription] = React.useState("");
     const [address, setAddress] = React.useState("");
 
-    const createEvent = async (name, price, reputation, tickets, city, address, date, hour, description) => {
+    const createEvent = async (name, price, reputation, tickets, city, address, dateStart, hourStart, dateEnd, hourEnd, description) => {
         try {
-            const transaction = await blockChainFactoryContract.createEvent(name,parseInt(tickets), parseFloat(price), parseFloat(reputation) );
+            const priceInWei = await calculateMaticTokens(price);
+            console.log(priceInWei.toString());
+            const transaction = await blockChainFactoryContract.createEvent(name,parseInt(tickets), priceInWei.toString(), parseInt(reputation) );
             const receipt = await transaction.wait();
             const eventAddress = receipt.logs[0].address;
             console.log("receipt", receipt);
@@ -44,8 +55,10 @@ function CreateEvent() {
                 tickets: tickets,
                 city: city,
                 address: address,
-                hour: hour,
-                date: date,
+                hourStart: hourStart,
+                dateStart: dateStart,
+                hourEnd: hourEnd,
+                dateEnd: dateEnd,
                 description: description,
                 blockAddress: eventAddress,
             };
@@ -57,10 +70,12 @@ function CreateEvent() {
                 setPrice("");
                 setReputation("");
                 setCity("");
-                setDate(new Date());
-                setHour("");
+                setDateStart(new Date());
+                setHourStart("");
                 setDescription("");
                 setAddress("");
+                setHourEnd("");
+                setDateEnd(new Date());
             }
             else {
                 toast.error("Event not created");
@@ -71,6 +86,20 @@ function CreateEvent() {
         }
 
     }
+
+    const cancelButton = () => {
+        setName("");
+        setTickets("");
+        setPrice("");
+        setReputation("");
+        setCity("");
+        setDateStart(new Date());
+        setHourStart("");
+        setDescription("");
+        setAddress("");
+        setHourEnd("");
+        setDateEnd(new Date());
+    };
 
     return (
         <>
@@ -102,7 +131,7 @@ function CreateEvent() {
                                         <Label className="text-white" htmlFor="name">Reputation</Label>
                                         <Input className="bg-gray-800 text-white" id="name" value={reputation}
                                                onChange={(e) => setReputation(e.target.value)}
-                                               placeholder="Reputation required to participate"/>
+                                               placeholder="Required to participate"/>
                                     </div>
                                     <div>
                                         <Label className="text-white" htmlFor="name">Tickets</Label>
@@ -132,18 +161,18 @@ function CreateEvent() {
                                                     variant={"outline"}
                                                     className={cn(
                                                         "w-[280px] justify-start text-left font-normal bg-gray-800 text-white",
-                                                        !date && "text-muted-foreground"
+                                                        !dateStart && "text-muted-foreground"
                                                     )}
                                                 >
                                                     <CalendarIcon className="mr-2 h-4 w-4" />
-                                                    {date ? format(date, "PPP") : <span>Pick a date</span>}
+                                                    {dateStart ? format(dateStart, "PPP") : <span>Pick a date</span>}
                                                 </Button>
                                             </PopoverTrigger>
                                             <PopoverContent className="w-auto p-0">
                                                 <Calendar
                                                     mode="single"
-                                                    selected={date}
-                                                    onSelect={setDate}
+                                                    selected={dateStart}
+                                                    onSelect={setDateStart}
                                                     initialFocus
                                                 />
                                             </PopoverContent>
@@ -151,9 +180,42 @@ function CreateEvent() {
                                     </div>
                                     <div>
                                         <Label className="text-white" htmlFor="name">Hour</Label>
-                                        <Input className="bg-gray-800 text-white" id="name" value={hour}
-                                               onChange={(e) => setHour(e.target.value)}
-                                               placeholder="The hour of the event"/>
+                                        <Input className="bg-gray-800 text-white" id="name" value={hourStart}
+                                               onChange={(e) => setHourStart(e.target.value)}
+                                               placeholder="The starting hour"/>
+                                    </div>
+                                </div>
+                                <div className="flex  justify-between">
+                                    <div>
+                                        <Label className="text-white" htmlFor="name">End</Label>
+                                        <Popover className="bg-gray-800 text-white">
+                                            <PopoverTrigger asChild>
+                                                <Button
+                                                    variant={"outline"}
+                                                    className={cn(
+                                                        "w-[280px] justify-start text-left font-normal bg-gray-800 text-white",
+                                                        !dateEnd && "text-muted-foreground"
+                                                    )}
+                                                >
+                                                    <CalendarIcon className="mr-2 h-4 w-4" />
+                                                    {dateEnd ? format(dateEnd, "PPP") : <span>Pick a date</span>}
+                                                </Button>
+                                            </PopoverTrigger>
+                                            <PopoverContent className="w-auto p-0">
+                                                <Calendar
+                                                    mode="single"
+                                                    selected={dateEnd}
+                                                    onSelect={setDateEnd}
+                                                    initialFocus
+                                                />
+                                            </PopoverContent>
+                                        </Popover>
+                                    </div>
+                                    <div>
+                                        <Label className="text-white" htmlFor="name">End</Label>
+                                        <Input className="bg-gray-800 text-white" id="name" value={hourEnd}
+                                               onChange={(e) => setHourEnd(e.target.value)}
+                                               placeholder="The ending hour"/>
                                     </div>
                                 </div>
                                 <div className="flex flex-col space-y-1.5">
@@ -166,8 +228,8 @@ function CreateEvent() {
                         </form>
                     </CardContent>
                     <CardFooter className="flex justify-between">
-                        <Button variant="outline">Cancel</Button>
-                        <Button onClick={() => createEvent(name, price, reputation, tickets, city, address, date, hour, description)}>Deploy</Button>
+                        <Button onClick={cancelButton} variant="outline">Cancel</Button>
+                        <Button onClick={() => createEvent(name, price, reputation, tickets, city, address, dateStart, hourStart, dateEnd, hourEnd, description)}>Create</Button>
                     </CardFooter>
                 </Card>
             </div>

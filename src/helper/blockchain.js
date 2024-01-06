@@ -4,7 +4,7 @@ const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
 await provider.send("eth_requestAccounts", []);
 const signer = provider.getSigner();
 
-const blockChainEventsAdress = "0xd29B9808478c88a011e793d0A8C4E6D93cc17Ab9";
+const blockChainEventsAdress = "0x73B1Ad55a8259Ed001304789FA655020bAA66975";
 const EventTicketingFactoryABI = [
     {
         "anonymous": false,
@@ -83,6 +83,19 @@ const EventTicketingFactoryABI = [
     {
         "inputs": [
             {
+                "internalType": "uint256",
+                "name": "nbrOfReputationPoints",
+                "type": "uint256"
+            }
+        ],
+        "name": "buyReputation",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "address",
                 "name": "_eventAddress",
                 "type": "address"
@@ -95,7 +108,7 @@ const EventTicketingFactoryABI = [
         ],
         "name": "buyTickets",
         "outputs": [],
-        "stateMutability": "nonpayable",
+        "stateMutability": "payable",
         "type": "function"
     },
     {
@@ -154,6 +167,44 @@ const EventTicketingFactoryABI = [
     {
         "inputs": [],
         "name": "getAllEvents",
+        "outputs": [
+            {
+                "internalType": "address[]",
+                "name": "",
+                "type": "address[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_eventAddress",
+                "type": "address"
+            }
+        ],
+        "name": "getEventPrice",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "eventAddress",
+                "type": "address"
+            }
+        ],
+        "name": "getParticipantsOfEvent",
         "outputs": [
             {
                 "internalType": "address[]",
@@ -680,7 +731,13 @@ const EventTicketingABI = [
         "type": "function"
     },
     {
-        "inputs": [],
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "userAddress",
+                "type": "address"
+            }
+        ],
         "name": "getOwnedNFTsForUser",
         "outputs": [
             {
@@ -844,6 +901,11 @@ const EventTicketingABI = [
                 "internalType": "uint256",
                 "name": "_quantity",
                 "type": "uint256"
+            },
+            {
+                "internalType": "address",
+                "name": "userAddress",
+                "type": "address"
             }
         ],
         "name": "purchaseTicket",
@@ -1081,3 +1143,35 @@ const EventTicketingABI = [
 const blockChainFactoryContract = new ethers.Contract(blockChainEventsAdress, EventTicketingFactoryABI, signer);
 
 export { provider, signer, blockChainEventsAdress, EventTicketingFactoryABI, blockChainFactoryContract, EventTicketingABI };
+
+const eurosToMaticApiUrl = 'https://api.coingecko.com/api/v3/simple/price?ids=matic-network&vs_currencies=eur';
+
+export async function getMaticToEuroRate() {
+    try {
+        const response = await fetch(eurosToMaticApiUrl);
+        const data = await response.json();
+        return data['matic-network'].eur;
+
+    } catch (error) {
+        console.error('Error fetching exchange rate:', error.message);
+        throw error;
+    }
+}
+
+export async function calculateMaticTokens(value) {
+    try {
+        const eurosAmount = parseFloat(value);
+
+        if (isNaN(eurosAmount) || eurosAmount < 0) {
+            throw new Error('Please enter a valid positive number for Euros.');
+        }
+
+        const maticToEuroRate = await getMaticToEuroRate();
+
+        // Calculate MATIC tokens based on the exchange rates
+        return eurosAmount / maticToEuroRate * 1e18;
+
+    } catch (error) {
+        console.error('Error calculating MATIC tokens:', error.message);
+    }
+}

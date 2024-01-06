@@ -1,13 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const eventSlice = createSlice({
-    name: "events",
+    name: "event",
     initialState: {
         allEvents: [],
     },
     reducers: {
         SetAllEvents: (state,action) => {
-            state.events = action.payload;
+            state.event = action.payload;
         }
     }
 });

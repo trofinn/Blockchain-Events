@@ -77,6 +77,17 @@ a:focus {
   border-radius: 12px;
 }
 
+.banner-image-event-page {
+  background-image: url("./photo.png");
+  background-position: center;
+  background-size: cover;
+  height: 500px;
+  width: 800px;
+  border-radius: 12px;
+  margin-right: 8%;
+  margin-top: 2%;
+}
+
 .eventCard {
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
@@ -140,4 +151,13 @@ a:focus {
 #eventHeader {
   align-items: center;
   margin-right: 5%;
+}
+
+
+#ticketCarousel {
+  width: 30%;
+}
+
+.stats {
+  width: 70%;
 }

@@ -7,7 +7,7 @@ import EventPage from "./pages/event-page/index.jsx";
 import MyTickets from "./pages/my-tickets/index.jsx";
 import Header from "./pages/components/content/Header.jsx";
 import Sidebar from "./pages/components/content/Sidebar.jsx";
-import {useState} from "react";
+import { useState} from "react";
 function App() {
     const [data, setData] = useState("");
 
@@ -29,7 +29,7 @@ function App() {
                       <Route path="/" element={<Homepage/>} />
                       <Route path="/create-event" element={<CreateEvent/>} />
                       <Route path="/my-events" element={<MyEvents data={data}/>} />
-                      <Route path="/events/:id" element={<EventPage data={data}/>} />
+                      <Route path="/events/:id"  element={<EventPage data={data}/>} />
                       <Route path="/tickets" element={<MyTickets data={data}/>} />
                   </Routes>
               </BrowserRouter>

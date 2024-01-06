@@ -2,7 +2,7 @@
 import EventCard from "../../pages/components/content/EventCard.jsx";
 import React, {useEffect} from "react";
 import {toast} from "react-hot-toast";
-import {blockChainFactoryContract, signer} from '../../helper/blockchain.js';
+import {blockChainFactoryContract} from '../../helper/blockchain.js';
 import { useDispatch } from 'react-redux';
 import {GetAllEvents} from "../../api-calls/events.js";
 import {SetAllEvents} from "../../redux/eventSlice.js";
@@ -49,9 +49,9 @@ function Homepage() {
                             const myEvent = {
                                 name: event.name,
                                 city: event.city,
-                                hour: event.hour,
+                                hourStart: event.hourStart,
                                 address: event.address,
-                                date: event.date,
+                                dateStart: event.dateStart,
                                 photo: event.photo,
                                 description: event.description,
                                 blockAddress: event.blockAddress,
