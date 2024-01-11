@@ -8,7 +8,7 @@ function EventCard({ event, admin }) {
 
     return (
         <a href={eventPageUrl} className="event-link">
-            <div className="eventCard m-6 rounded">
+            <div className="eventCard m-6 ">
                 <div className="wrapper">
                     <div className="banner-image-event"></div>
                     <div>

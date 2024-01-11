@@ -8,6 +8,8 @@ import MyTickets from "./pages/my-tickets/index.jsx";
 import Header from "./pages/components/content/Header.jsx";
 import Sidebar from "./pages/components/content/Sidebar.jsx";
 import { useState} from "react";
+import {Toaster} from "sonner";
+import ResponsiveAppBar from "./pages/components/content/ResponsiveAppBar.jsx";
 function App() {
     const [data, setData] = useState("");
 
@@ -18,12 +20,14 @@ function App() {
 
   return (
     <>
-      <div className="h-full bg-gray-800">
+      <div className="h-full ">
           <div>
+              <ResponsiveAppBar/>
               <Header onAccountChange ={handleAccountChange}/>
           </div>
           <div id="body" className="h-full w-full flex">
               <Sidebar/>
+              <Toaster className=""/>
               <BrowserRouter>
                   <Routes>
                       <Route path="/" element={<Homepage/>} />

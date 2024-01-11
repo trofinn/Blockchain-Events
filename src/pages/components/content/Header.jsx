@@ -116,7 +116,7 @@ function Header({onAccountChange}) {
     };
 
 
-    return <div className="header w-[100vw] h-[6vh] rounded ml-1 mr-1 mb-1 flex justify-between p-3">
+    return <div className="header w-[100vw] h-[6vh] flex justify-between pl-[16vw] pr-[21vw]">
         {isMetaMaskConnected ? (
             <div className="flex max-w-sm items-center">
                 <Card className="text-center">

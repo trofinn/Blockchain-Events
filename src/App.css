@@ -25,6 +25,7 @@ a:focus {
 
 .Sidebar {
   background-color: #2F4050;
+  width: 0;
 }
 
 .SidebarList {
@@ -65,7 +66,7 @@ a:focus {
 }
 
 .header {
-  background-color: #2F4050;
+  background-color: rgb(31 41 55);
 }
 
 .banner-image-event {
@@ -93,6 +94,7 @@ a:focus {
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   background-color: rgb(31 41 55);
   border: 1px solid rgba(210, 163, 163, 0.12);
+  border-radius: 12px;
   padding: 3px;
   filter: drop-shadow(0 30px 10px rgba(0,0,0,0.125));
   display: flex;
@@ -110,11 +112,18 @@ a:focus {
 
 #homeTitle {
   font-size: 70px;
-  color: white;
+  color: rgb(230, 233, 236);
 }
 
 .eventList {
   align-items: start;
+}
+
+.loader {
+  position: absolute;
+  top: 20%;
+  left: 40%;
+  margin: -25px 0 0 -25px;
 }
 
 #createEventCard {
@@ -125,15 +134,19 @@ a:focus {
   padding: 3px;
   filter: drop-shadow(0 30px 10px rgba(0,0,0,0.125));
   position: absolute;
-  top: 20%;
-  left: 40%;
+  top: 25%;
+  left: 35%;
   margin: -25px 0 0 -25px;
 }
 
 #content {
-  background-color: #2F4050;
-  padding-right: 5%;
-  padding-left: 5%;
+  background-image: url("texture.jpg");
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  padding-right: 15%;
+  padding-left: 15%;
+
 }
 
 .center-arrow {
@@ -160,4 +173,13 @@ a:focus {
 
 .stats {
   width: 70%;
+}
+
+#filterButton:hover {
+  color: #71818f;
+}
+
+#AppBar {
+  background-color: rgb(31 41 55);
+
 }

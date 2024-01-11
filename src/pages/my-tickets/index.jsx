@@ -13,7 +13,7 @@ function MyTickets({ data }) {
     const getMyTickets = async () => {
         if (isMetaMaskConnected) {
             try {
-                const eventsResponse = await blockChainFactoryContract.getAllEvents();
+                const eventsResponse = await blockChainFactoryContract.getUserParticipatedEvents(data);
                 const response = await GetAllEvents(eventsResponse);
                 if(response.success) {
                     setEvents(response.data);
@@ -51,7 +51,7 @@ function MyTickets({ data }) {
 
     return (
         <>
-            <div className="w-full rounded m-1" id="content">
+            <div className="w-full" id="content">
                 <h1 className="ml-6" id="homeTitle"><i>My Tickets</i></h1>
                 {loading ? (
                     <p>
@@ -59,7 +59,7 @@ function MyTickets({ data }) {
                     </p>
                 ) : (
 
-                    <div className="flex flex-wrap eventList justify-between">
+                    <div className="flex flex-wrap eventList">
                         {events.map((event) => {
                             // eslint-disable-next-line react/jsx-key
                             const myEvent = {

@@ -51,15 +51,15 @@ function MyEvents({data} ) {
 
     return (
         <>
-            <div className="w-full rounded m-1 " id="content">
-                        <h1 className="ml-6" id="homeTitle"><i>My Events</i></h1>
+            <div className="w-full" id="content">
+                <h1 className="ml-6" id="homeTitle"><i>My Events</i></h1>
                 {loading ? (
                     <p>
                         Loading..
                     </p>
                 ) : (
 
-                    <div className="flex flex-wrap eventList justify-between">
+                    <div className="flex flex-wrap eventList">
                         {events.map((event) => {
                             // eslint-disable-next-line react/jsx-key
                             const myEvent = {

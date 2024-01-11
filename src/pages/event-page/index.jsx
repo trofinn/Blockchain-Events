@@ -1,7 +1,6 @@
 import React, {useEffect} from "react";
 import {Button} from "../../components/ui/button.jsx";
-import {toast} from "react-hot-toast";
-import {blockChainFactoryContract, calculateMaticTokens, getMaticToEuroRate} from '../../helper/blockchain.js';
+import {blockChainFactoryContract, calculateMaticTokens} from '../../helper/blockchain.js';
 import {GetMyEvent} from "../../api-calls/events.js";
 import {
     Popover,
@@ -31,6 +30,9 @@ import {ScrollArea} from "../../components/ui/scroll-area"
 import {Separator} from "../../components/ui/separator"
 import * as Icon from 'react-bootstrap-icons';
 import {useLocation} from "react-router-dom";
+import { toast } from "sonner"
+import QRCode from 'qrcode.react';
+
 function EventPage({data}) {
     const [event, setEvent] = React.useState();
     const [loading, setLoading] = React.useState(true);
@@ -46,11 +48,19 @@ function EventPage({data}) {
             const priceInWei = await calculateMaticTokens(event.price);
             const amountToSend = quantity * priceInWei;
             console.log("amountToSend = ",amountToSend);
-            await blockChainFactoryContract.buyTickets(event.blockAddress, quantity, {value: amountToSend.toString()});
+            const transaction = await blockChainFactoryContract.buyTickets(event.blockAddress, quantity, {value: amountToSend.toString()});
+            await transaction.wait();
+            const ticketsAvailable = await blockChainFactoryContract.getUserOwnedNFTsForEvent(event.blockAddress);
             setShouldHideTicketCarousel(false);
-            setTickets(tickets + quantity);
+            setTickets(ticketsAvailable);
+            toast("Ticket bought");
         } catch (e) {
-            toast.error(e);
+            const errorMessageRegex = /execution reverted: (.*?)",/;
+            const match = e.message.match(errorMessageRegex);
+            if (match) {
+                const errorMessage = match[1];
+                toast(errorMessage);
+            }
         }
     }
     const onClick = (adjustment) => {
@@ -97,7 +107,7 @@ function EventPage({data}) {
                     if (response.success) {
                         setEvent(response.data[0]);
                         const ticketsAvailable = await blockChainFactoryContract.getUserOwnedNFTsForEvent(hexAddress);
-                        setTickets(ticketsAvailable.length);
+                        setTickets(ticketsAvailable);
                         if (ticketsAvailable.length > 0) {
                             setShouldHideTicketCarousel(false);
                         }
@@ -143,7 +153,7 @@ function EventPage({data}) {
 
     return (
         <>
-            <div className="w-full rounded m-1" id="content">
+            <div className="w-full" id="content">
                 {loading ? (
                     <p>
                         Loading..
@@ -191,12 +201,13 @@ function EventPage({data}) {
 
                             <div className="banner-image-event-page"></div>
                         </div>
+
                         <div className="mt-10 flex">
                             <Drawer>
                                 <DrawerTrigger asChild>
                                     <Button variant="outline" className="ml-5 pur bg-gray-900 border-0 text-white">Buy Tickets Now At ${event.price}</Button>
                                 </DrawerTrigger>
-                                <DrawerContent>
+                                <DrawerContent className="bg-gray-700 text-white">
                                     <div className="mx-auto w-full max-w-sm">
                                         <DrawerHeader>
                                             <DrawerTitle>How many tickets you want?</DrawerTitle>
@@ -206,7 +217,7 @@ function EventPage({data}) {
                                                 <Button
                                                     variant="outline"
                                                     size="icon"
-                                                    className="h-8 w-8 shrink-0 rounded-full"
+                                                    className="h-8 w-8 shrink-0 rounded-full text-black"
                                                     onClick={() => onClick(-1)}
                                                     disabled={quantity === 0}
                                                 >
@@ -224,7 +235,7 @@ function EventPage({data}) {
                                                 <Button
                                                     variant="outline"
                                                     size="icon"
-                                                    className="h-8 w-8 shrink-0 rounded-full"
+                                                    className="h-8 w-8 shrink-0 rounded-full text-black"
                                                     onClick={() => onClick(1)}
                                                 >
                                                     <PlusIcon className="h-4 w-4"/>
@@ -233,9 +244,9 @@ function EventPage({data}) {
                                             </div>
                                         </div>
                                         <DrawerFooter>
-                                            <Button onClick={buyTicket}>Buy Tickets</Button>
+                                            <Button onClick={buyTicket} className="bg-gray-900">Buy Tickets</Button>
                                             <DrawerClose asChild>
-                                                <Button variant="outline">Cancel</Button>
+                                                <Button variant="outline" className="text-black">Cancel</Button>
                                             </DrawerClose>
                                         </DrawerFooter>
                                     </div>
@@ -277,13 +288,13 @@ function EventPage({data}) {
                                     onMouseLeave={plugin.current.reset}
                                 >
                                     <CarouselContent>
-                                        {Array.from({length: tickets}).map((_, index) => (
+                                        {Array.from({length: tickets.length}).map((_, index) => (
                                             <CarouselItem key={index}>
                                                 <div className="p-1">
                                                     <Card>
                                                         <CardContent
                                                             className="flex aspect-square items-center justify-center p-6">
-                                                            <span className="text-4xl font-semibold">{index + 1}</span>
+                                                            <span className="text-4xl font-semibold"><QRCode value={tickets[index]._hex} /></span>
                                                         </CardContent>
                                                     </Card>
                                                 </div>
