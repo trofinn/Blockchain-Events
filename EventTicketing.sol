@@ -36,6 +36,15 @@ contract Event is ERC721, Ownable {
         reputationPoints = _reputationPoints;
     }
 
+    function modifyEvent(uint256 _newPrice, uint256 _newTotalTickets, uint256 _newReputationPoints, string memory _newEventName, address userAddress) external {
+        require(organizer == userAddress, "Only the owner can modify the event");
+        require(_newTotalTickets >= totalSoldTickets, "New total tickets must be greater than or equal to total sold tickets");
+        eventPrice = _newPrice;
+        totalAvailableTickets = _newTotalTickets;
+        reputationPoints = _newReputationPoints;
+        eventName = _newEventName;
+    }
+
     function purchaseTicket(uint256 _quantity, address userAddress) payable public {
         require(_quantity > 0, "Quantity must be greater than zero");
         require(msg.value == eventPrice * _quantity, "Incorrect payment amount");

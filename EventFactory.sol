@@ -74,4 +74,12 @@ contract EventFactory {
         Event eventContract = Event(eventAddress);
         return eventContract.getParticipants();
     }
+
+    function modifyEvent(address _eventAddress, uint256 _newPrice, uint256 _newTotalTickets, uint256 _newReputationPoints, string memory _newEventName) external {
+        require(_eventAddress != address(0), "Invalid event address");
+        Event eventContract = Event(_eventAddress);
+        eventContract.modifyEvent(_newPrice,  _newTotalTickets,  _newReputationPoints,   _newEventName,  msg.sender);
+    }
+
+
 }
