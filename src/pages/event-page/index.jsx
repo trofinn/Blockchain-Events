@@ -1,7 +1,7 @@
 import React, {useEffect} from "react";
 import {Button} from "../../components/ui/button.jsx";
 import {blockChainFactoryContract, calculateMaticTokens} from '../../helper/blockchain.js';
-import {CreateEventCall, GetMyEvent, ModifyEvent} from "../../api-calls/events.js";
+import {GetMyEvent, ModifyEvent} from "../../api-calls/events.js";
 import {
     Popover,
     PopoverContent,
@@ -79,6 +79,7 @@ function EventPage({data}) {
     const buyTicket = async () => {
         try {
             const priceInWei = await calculateMaticTokens(event.price);
+            console.log(event.priceInWei);
             const amountToSend = quantity * priceInWei;
             console.log("amountToSend = ",amountToSend);
             const transaction = await blockChainFactoryContract.buyTickets(event.blockAddress, quantity, {value: amountToSend.toString()});
@@ -240,6 +241,14 @@ function EventPage({data}) {
         }
         else {
             setLoading(false);
+        }
+        if(event) {
+            if(event.owner === data) {
+                setAdmin(true);
+            }
+            else {
+                setAdmin(false);
+            }
         }
         getMyEvent();
         getParticipants();
