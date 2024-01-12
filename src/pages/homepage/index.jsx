@@ -29,6 +29,7 @@ function Homepage() {
     const getMyEvents = async () => {
         try {
             const eventsResponse = await blockChainFactoryContract.getAllEvents();
+            console.log("event from blockchain: ", eventsResponse);
             const response = await GetAllEvents(eventsResponse);
             if(response.success) {
                 dispatch(SetAllEvents(response.data));

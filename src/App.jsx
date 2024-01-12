@@ -31,7 +31,7 @@ function App() {
               <BrowserRouter>
                   <Routes>
                       <Route path="/" element={<Homepage/>} />
-                      <Route path="/create-event" element={<CreateEvent/>} />
+                      <Route path="/create-event" element={<CreateEvent data={data}/>} />
                       <Route path="/my-events" element={<MyEvents data={data}/>} />
                       <Route path="/events/:id"  element={<EventPage data={data}/>} />
                       <Route path="/tickets" element={<MyTickets data={data}/>} />

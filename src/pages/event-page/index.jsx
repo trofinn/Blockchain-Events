@@ -1,12 +1,27 @@
 import React, {useEffect} from "react";
 import {Button} from "../../components/ui/button.jsx";
 import {blockChainFactoryContract, calculateMaticTokens} from '../../helper/blockchain.js';
-import {GetMyEvent} from "../../api-calls/events.js";
+import {CreateEventCall, GetMyEvent, ModifyEvent} from "../../api-calls/events.js";
 import {
     Popover,
     PopoverContent,
     PopoverTrigger,
 } from "../../components/ui/popover"
+
+import {
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "../../components/ui/card"
+import { Input } from "../../components/ui/input"
+import { Label } from "../../components/ui/label"
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "../../components/ui/tabs"
 
 import {
     Drawer,
@@ -32,6 +47,11 @@ import * as Icon from 'react-bootstrap-icons';
 import {useLocation} from "react-router-dom";
 import { toast } from "sonner"
 import QRCode from 'qrcode.react';
+import {Calendar as CalendarIcon} from "lucide-react";
+import {format} from "date-fns";
+import { Calendar } from "../../components/ui/calendar";
+import {Textarea} from "../../components/ui/textarea.jsx";
+import { cn } from "../../lib/utils.js";
 
 function EventPage({data}) {
     const [event, setEvent] = React.useState();
@@ -42,6 +62,19 @@ function EventPage({data}) {
     const plugin = React.useRef(Autoplay({delay: 2000, stopOnInteraction: true}));
     const [shouldHideTicketCarousel, setShouldHideTicketCarousel] = React.useState(true);
     const [participants, setParticipants] = React.useState([]);
+    const [admin , setAdmin] = React.useState(false);
+    const [loader, setLoader] = React.useState(false);
+    const [name, setName] = React.useState("");
+    const [price, setPrice] = React.useState("");
+    const [reputation, setReputation] = React.useState("");
+    const [nbrOfTickets, setNbrOfTickets] = React.useState("");
+    const [city, setCity] = React.useState("");
+    const [dateStart, setDateStart] = React.useState(new Date());
+    const [hourStart, setHourStart] = React.useState("");
+    const [dateEnd, setDateEnd] = React.useState(new Date());
+    const [hourEnd, setHourEnd] = React.useState("");
+    const [description, setDescription] = React.useState("");
+    const [address, setAddress] = React.useState("");
     let location = useLocation();
     const buyTicket = async () => {
         try {
@@ -106,6 +139,20 @@ function EventPage({data}) {
                     const response = await GetMyEvent(hexAddress);
                     if (response.success) {
                         setEvent(response.data[0]);
+                        if(response.data[0].owner === data) {
+                            setAdmin(true);
+                        }
+                        setName(response.data[0].name);
+                        setNbrOfTickets(response.data[0].tickets);
+                        setPrice(response.data[0].price);
+                        setReputation(response.data[0].reputationRequired);
+                        setCity(response.data[0].city);
+                        setDateStart(new Date());
+                        setHourStart(response.data[0].hourStart);
+                        setDescription(response.data[0].description);
+                        setAddress(response.data[0].address);
+                        setHourEnd(response.data[0].hourEnd);
+                        setDateEnd(new Date());
                         const ticketsAvailable = await blockChainFactoryContract.getUserOwnedNFTsForEvent(hexAddress);
                         setTickets(ticketsAvailable);
                         if (ticketsAvailable.length > 0) {
@@ -125,6 +172,53 @@ function EventPage({data}) {
             }
         }
     }
+
+    const modifyEvent = async (blockAddress, price, nbrOfTickets, reputation, name, dateStart, dateEnd, hourStart, hourEnd, address, description, city) => {
+        try {
+            console.log("modified contract = ", blockAddress);
+            setLoader(true);
+            const priceInWei = await calculateMaticTokens(price);
+            console.log(priceInWei.toString());
+            const transaction = await blockChainFactoryContract.modifyEvent(blockAddress,priceInWei.toString(), parseInt(nbrOfTickets), parseInt(reputation), name );
+            const receipt = await transaction.wait();
+            console.log("receipt", receipt);
+            const newEvent = {
+                name: name,
+                price: price,
+                reputationRequired: reputation,
+                tickets: nbrOfTickets,
+                city: city,
+                address: address,
+                hourStart: hourStart,
+                dateStart: dateStart,
+                hourEnd: hourEnd,
+                dateEnd: dateEnd,
+                description: description,
+                blockAddress: blockAddress,
+                owner: data
+
+            };
+            const modifyEventResponse = await ModifyEvent(blockAddress, newEvent);
+            if(modifyEventResponse.success) {
+                toast("Event modified");
+                setEvent(modifyEventResponse.data);
+                setLoader(false);
+            }
+            else {
+                toast("Event not modified");
+            }
+
+        } catch (e) {
+            const errorMessageRegex = /execution reverted: (.*?)",/;
+            const match = e.message.match(errorMessageRegex);
+            if (match) {
+                const errorMessage = match[1];
+                toast(errorMessage);
+            }
+        }
+
+    }
+
 
     useEffect(() => {
         const checkMetaMaskConnection = async () => {
@@ -161,51 +255,223 @@ function EventPage({data}) {
                 ) : (
                     <div className="mt-20">
                         <div className="flex justify-between">
-                            <div className="eventInfos text-white w-[30vw]">
-                                <h1 className="ml-5" id="homeTitle"><i>{event.name}</i></h1>
-                                <Separator className="ml-5"/>
-                                <div className="ml-5 mt-2 flex place-items-center">
-                                    <Icon.Nut width="40px" height="40px" color="gray-900"/>
-                                    <p className="pl-3 text-purple-500">BlockChain Address: </p>
-                                    <p className="pl-1">{event.blockAddress}</p>
-                                </div>
-                                <Separator className="ml-5 mt-2"/>
-                                <div className="ml-5 mt-2 flex place-items-center">
-                                    <Icon.CalendarMinus width="40px" height="40px" color="gray-900"/>
-                                    <div>
-                                        <div className="pl-3 flex">
-                                            <p className="text-purple-500">From:</p>
-                                            <p className="pl-1">{moment(event.dateStart).format("DD / MM / YYYY")} at {event.hourStart}</p>
+                            {admin ? (<Tabs defaultValue="account" className="w-[400px]">
+                                    <TabsList className="grid w-full grid-cols-2">
+                                        <TabsTrigger value="account">Event Infos</TabsTrigger>
+                                        <TabsTrigger value="password">Modify Event</TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent value="account">
+                                        <div className="eventInfos text-white w-[33vw] rounded-xl bg-gray-800 pb-5">
+                                            <h1 className="ml-5" id="homeTitle"><i>{event.name}</i></h1>
+                                            <Separator className=""/>
+                                            <div className="ml-5 mt-2 flex place-items-center">
+                                                <Icon.Nut width="40px" height="40px" color="gray-900"/>
+                                                <p className="pl-3 text-purple-500">BlockChain Address: </p>
+                                                <p className="pl-1">{event.blockAddress}</p>
+                                            </div>
+                                            <Separator className="mt-2"/>
+                                            <div className="ml-5 mt-2 flex place-items-center">
+                                                <Icon.CalendarMinus width="40px" height="40px" color="gray-900"/>
+                                                <div>
+                                                    <div className="pl-3 flex">
+                                                        <p className="text-purple-500">From:</p>
+                                                        <p className="pl-1">{moment(event.dateStart).format("DD / MM / YYYY")} at {event.hourStart}</p>
+                                                    </div>
+                                                    <div className="pl-3 flex ">
+                                                        <p className="text-purple-500">To: </p>
+                                                        <p className="pl-1">{moment(event.dateEnd).format("DD / MM / YYYY")} at {event.hourEnd}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <Separator className=" mt-2"/>
+                                            <div className="ml-5 mt-2 flex place-items-center">
+                                                <Icon.House width="40px" height="40px" color="gray-900"/>
+                                                <p className="pl-3 text-purple-500">{event.address}, {event.city}</p>
+                                            </div>
+                                            <Separator className="mb-2 mt-2"/>
+
+                                            <br/>
+
+
+                                            <ScrollArea className="h-40 w-[30vw] rounded-md border mt-2 ml-5 p-2">
+                                                <p className="ml-5">{event.description}</p>
+                                            </ScrollArea>
                                         </div>
-                                        <div className="pl-3 flex ">
-                                            <p className="text-purple-500">To: </p>
-                                            <p className="pl-1">{moment(event.dateEnd).format("DD / MM / YYYY")} at {event.hourEnd}</p>
+                                    </TabsContent>
+                                    <TabsContent value="password">
+                                        <Card className="w-[550px] bg-gray-800 pb-5">
+                                            <CardHeader>
+                                                <CardTitle className="text-white">Modify Event</CardTitle>
+                                                <CardDescription className="text-white">Modify your event in one-click.</CardDescription>
+                                            </CardHeader>
+                                            <CardContent>
+                                                <form>
+                                                    <div className="grid w-full items-center gap-4">
+                                                        <div className="flex justify-between">
+                                                            <div>
+                                                                <Label className="text-white" htmlFor="name">Name</Label>
+                                                                <Input className="bg-gray-800 text-white" id="name" value={name}
+                                                                       onChange={(e) => setName(e.target.value)} placeholder="Name of your event"/>
+                                                            </div>
+                                                            <div>
+                                                                <Label className="text-white" htmlFor="name">Price</Label>
+                                                                <Input className="bg-gray-800 text-white" id="name" value={price}
+                                                                       onChange={(e) => setPrice(e.target.value)}
+                                                                       placeholder="Price of your event in $"/>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex  justify-between">
+                                                            <div>
+                                                                <Label className="text-white" htmlFor="name">Reputation</Label>
+                                                                <Input className="bg-gray-800 text-white" id="name" value={reputation}
+                                                                       onChange={(e) => setReputation(e.target.value)}
+                                                                       placeholder="Required to participate"/>
+                                                            </div>
+                                                            <div>
+                                                                <Label className="text-white" htmlFor="name">Tickets</Label>
+                                                                <Input className="bg-gray-800 text-white" id="name" value={nbrOfTickets}
+                                                                       onChange={(e) => setNbrOfTickets(e.target.value)}
+                                                                       placeholder="Number of tickets available"/>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-col space-y-1.5">
+                                                            <Label className="text-white" htmlFor="name">City</Label>
+                                                            <Input className="bg-gray-800 text-white" id="name" value={city}
+                                                                   onChange={(e) => setCity(e.target.value)}
+                                                                   placeholder="The city where the event happens"/>
+                                                        </div>
+                                                        <div className="flex flex-col space-y-1.5">
+                                                            <Label className="text-white" htmlFor="name">Address</Label>
+                                                            <Input className="bg-gray-800 text-white" id="name" value={address}
+                                                                   onChange={(e) => setAddress(e.target.value)}
+                                                                   placeholder="Address: Street, Number"/>
+                                                        </div>
+                                                        <div className="flex  justify-between">
+                                                            <div>
+                                                                <Label className="text-white" htmlFor="name">Date</Label>
+                                                                <Popover className="bg-gray-800 text-white">
+                                                                    <PopoverTrigger asChild>
+                                                                        <Button
+                                                                            variant={"outline"}
+                                                                            className={cn(
+                                                                                "w-[280px] justify-start text-left font-normal bg-gray-800 text-white",
+                                                                                !dateStart && "text-muted-foreground"
+                                                                            )}
+                                                                        >
+                                                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                                                            {dateStart ? format(dateStart, "PPP") : <span>Pick a date</span>}
+                                                                        </Button>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent className="w-auto p-0">
+                                                                        <Calendar
+                                                                            mode="single"
+                                                                            selected={dateStart}
+                                                                            onSelect={setDateStart}
+                                                                            initialFocus
+                                                                        />
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                            </div>
+                                                            <div>
+                                                                <Label className="text-white" htmlFor="name">Hour</Label>
+                                                                <Input className="bg-gray-800 text-white" id="name" value={hourStart}
+                                                                       onChange={(e) => setHourStart(e.target.value)}
+                                                                       placeholder="The starting hour"/>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex  justify-between">
+                                                            <div>
+                                                                <Label className="text-white" htmlFor="name">End</Label>
+                                                                <Popover className="bg-gray-800 text-white">
+                                                                    <PopoverTrigger asChild>
+                                                                        <Button
+                                                                            variant={"outline"}
+                                                                            className={cn(
+                                                                                "w-[280px] justify-start text-left font-normal bg-gray-800 text-white",
+                                                                                !dateEnd && "text-muted-foreground"
+                                                                            )}
+                                                                        >
+                                                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                                                            {dateEnd ? format(dateEnd, "PPP") : <span>Pick a date</span>}
+                                                                        </Button>
+                                                                    </PopoverTrigger>
+                                                                    <PopoverContent className="w-auto p-0">
+                                                                        <Calendar
+                                                                            mode="single"
+                                                                            selected={dateEnd}
+                                                                            onSelect={setDateEnd}
+                                                                            initialFocus
+                                                                        />
+                                                                    </PopoverContent>
+                                                                </Popover>
+                                                            </div>
+                                                            <div>
+                                                                <Label className="text-white" htmlFor="name">End</Label>
+                                                                <Input className="bg-gray-800 text-white" id="name" value={hourEnd}
+                                                                       onChange={(e) => setHourEnd(e.target.value)}
+                                                                       placeholder="The ending hour"/>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex flex-col space-y-1.5">
+                                                            <Label className="text-white" htmlFor="name">Description</Label>
+                                                            <Textarea className="bg-gray-800 text-white" id="name" value={description}
+                                                                      onChange={(e) => setDescription(e.target.value)}
+                                                                      placeholder="Event description"/>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </CardContent>
+                                            <CardFooter className="flex justify-between">
+
+                                                <Button onClick={() => modifyEvent(event.blockAddress, price, nbrOfTickets, reputation, name, dateStart, dateEnd, hourStart, hourEnd, address, description, city)}>Modify</Button>
+                                            </CardFooter>
+                                        </Card>
+                                    </TabsContent>
+                                </Tabs>) : (
+                                <div className="eventInfos text-white w-[33vw] rounded-xl bg-gray-800 pb-5">
+                                    <h1 className="ml-5" id="homeTitle"><i>{event.name}</i></h1>
+                                    <Separator className=""/>
+                                    <div className="ml-5 mt-2 flex place-items-center">
+                                        <Icon.Nut width="40px" height="40px" color="gray-900"/>
+                                        <p className="pl-3 text-purple-500">BlockChain Address: </p>
+                                        <p className="pl-1">{event.blockAddress}</p>
+                                    </div>
+                                    <Separator className="mt-2"/>
+                                    <div className="ml-5 mt-2 flex place-items-center">
+                                        <Icon.CalendarMinus width="40px" height="40px" color="gray-900"/>
+                                        <div>
+                                            <div className="pl-3 flex">
+                                                <p className="text-purple-500">From:</p>
+                                                <p className="pl-1">{moment(event.dateStart).format("DD / MM / YYYY")} at {event.hourStart}</p>
+                                            </div>
+                                            <div className="pl-3 flex ">
+                                                <p className="text-purple-500">To: </p>
+                                                <p className="pl-1">{moment(event.dateEnd).format("DD / MM / YYYY")} at {event.hourEnd}</p>
+                                            </div>
                                         </div>
                                     </div>
+                                    <Separator className=" mt-2"/>
+                                    <div className="ml-5 mt-2 flex place-items-center">
+                                        <Icon.House width="40px" height="40px" color="gray-900"/>
+                                        <p className="pl-3 text-purple-500">{event.address}, {event.city}</p>
+                                    </div>
+                                    <Separator className="mb-2 mt-2"/>
+
+                                    <br/>
+
+
+                                    <ScrollArea className="h-40 w-[30vw] rounded-md border mt-2 ml-5 p-2">
+                                        <p className="ml-5">{event.description}</p>
+                                    </ScrollArea>
                                 </div>
-                                <Separator className="ml-5 mt-2"/>
-                                <div className="ml-5 mt-2 flex place-items-center">
-                                    <Icon.House width="40px" height="40px" color="gray-900"/>
-                                    <p className="pl-3 text-purple-500">{event.address}, {event.city}</p>
-                                </div>
-                                <Separator className="ml-5 mb-2 mt-2"/>
-
-                                <br/>
-                                <br/>
-                                <br/>
-
-                                <ScrollArea className="h-40 w-[30vw] rounded-md border mt-2 ml-5 p-2">
-                                    <p className="ml-5">{event.description}</p>
-                                </ScrollArea>
-                            </div>
-
+                            )}
                             <div className="banner-image-event-page"></div>
                         </div>
 
                         <div className="mt-10 flex">
                             <Drawer>
                                 <DrawerTrigger asChild>
-                                    <Button variant="outline" className="ml-5 pur bg-gray-900 border-0 text-white">Buy Tickets Now At ${event.price}</Button>
+                                    <Button variant="outline" className=" pur border-0 ">Buy Tickets Now At ${event.price}</Button>
                                 </DrawerTrigger>
                                 <DrawerContent className="bg-gray-700 text-white">
                                     <div className="mx-auto w-full max-w-sm">
@@ -255,7 +521,7 @@ function EventPage({data}) {
                             <div className="stats ml-5">
                                 <Popover>
                                     <PopoverTrigger asChild>
-                                        <Button className="w-[22vw] bg-gray-900 border-0 text-white" variant="outline">This event
+                                        <Button className="w-[22vw] border-0 " variant="outline">This event
                                             has {event.tickets - participants.length} more places available. Click to
                                             see the participants</Button>
                                     </PopoverTrigger>

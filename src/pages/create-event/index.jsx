@@ -23,7 +23,7 @@ import {
 import {CreateEventCall} from "../../api-calls/events.js";
 import {CircularProgress} from "@mui/material";
 
-function CreateEvent() {
+function CreateEvent({data} ) {
     const [name, setName] = React.useState("");
     const [price, setPrice] = React.useState("");
     const [reputation, setReputation] = React.useState("");
@@ -58,6 +58,8 @@ function CreateEvent() {
                 dateEnd: dateEnd,
                 description: description,
                 blockAddress: eventAddress,
+                owner: data
+
             };
             const createEventResponse = await CreateEventCall(newEvent);
             if(createEventResponse.success) {

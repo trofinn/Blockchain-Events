@@ -86,7 +86,7 @@ a:focus {
   width: 800px;
   border-radius: 12px;
   margin-right: 8%;
-  margin-top: 2%;
+  margin-top: 3%;
 }
 
 .eventCard {
@@ -144,8 +144,8 @@ a:focus {
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  padding-right: 15%;
-  padding-left: 15%;
+  padding-right: 11%;
+  padding-left: 11%;
 
 }
 
@@ -165,6 +165,7 @@ a:focus {
   align-items: center;
   margin-right: 5%;
 }
+
 
 
 #ticketCarousel {

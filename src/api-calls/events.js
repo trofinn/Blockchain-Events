@@ -29,3 +29,13 @@ export const GetMyEvent = async (blockAddress) => {
         return e.response.data;
     }
 }
+
+export const ModifyEvent = async (blockAddress, modifiedEvent) => {
+    try {
+        const response = await axiosInstance.put(`/api/events/modify/${blockAddress}`, modifiedEvent);
+        return response.data;
+    }
+    catch (e) {
+        return e.response.data;
+    }
+}

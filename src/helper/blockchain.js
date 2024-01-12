@@ -4,7 +4,7 @@ const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
 await provider.send("eth_requestAccounts", []);
 const signer = provider.getSigner();
 
-const blockChainEventsAdress = "0x73B1Ad55a8259Ed001304789FA655020bAA66975";
+const blockChainEventsAdress = "0x12d28a25bc8b647dA137Db6927e3Ca7dED05b885";
 const EventTicketingFactoryABI = [
     {
         "anonymous": false,
@@ -84,13 +84,19 @@ const EventTicketingFactoryABI = [
         "inputs": [
             {
                 "internalType": "uint256",
-                "name": "nbrOfReputationPoints",
+                "name": "",
                 "type": "uint256"
             }
         ],
-        "name": "buyReputation",
-        "outputs": [],
-        "stateMutability": "payable",
+        "name": "allEvents",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {
@@ -143,25 +149,6 @@ const EventTicketingFactoryABI = [
             }
         ],
         "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "name": "allEvents",
-        "outputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "stateMutability": "view",
         "type": "function"
     },
     {
@@ -289,6 +276,39 @@ const EventTicketingFactoryABI = [
             }
         ],
         "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "_eventAddress",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_newPrice",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_newTotalTickets",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_newReputationPoints",
+                "type": "uint256"
+            },
+            {
+                "internalType": "string",
+                "name": "_newEventName",
+                "type": "string"
+            }
+        ],
+        "name": "modifyEvent",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     },
     {
@@ -833,6 +853,39 @@ const EventTicketingABI = [
             }
         ],
         "name": "markReputationReceived",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "_newPrice",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_newTotalTickets",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "_newReputationPoints",
+                "type": "uint256"
+            },
+            {
+                "internalType": "string",
+                "name": "_newEventName",
+                "type": "string"
+            },
+            {
+                "internalType": "address",
+                "name": "userAddress",
+                "type": "address"
+            }
+        ],
+        "name": "modifyEvent",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
